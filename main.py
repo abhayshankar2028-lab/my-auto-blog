@@ -20,18 +20,21 @@ def run():
     summary = article.summary
     print(f"Article Found: {title}")
 
-    # FIXED: Using keyword arguments to prevent the "positional argument" error
     client = InferenceClient(token=HF_TOKEN)
-    prompt = f"Write a 100-word sports news report about: {title}. Context: {summary}"
     
     try:
-        print("Requesting AI generation...")
-        # We now pass the prompt inside the 'prompt' keyword explicitly
-        content = client.text_generation(
-            prompt=prompt,
+        print("Requesting AI generation via Chat interface...")
+        # FIXED: Using chat_completion because the model now requires 'conversational' task
+        response = client.chat_completion(
             model="mistralai/Mistral-7B-Instruct-v0.3",
-            max_new_tokens=300
+            messages=[
+                {"role": "system", "content": "You are a professional sports journalist."},
+                {"role": "user", "content": f"Write a 150-word blog post about: {title}. Context: {summary}"}
+            ],
+            max_tokens=500
         )
+        
+        content = response.choices[0].message.content
         
         date_str = datetime.date.today().strftime("%Y-%m-%d")
         clean_title = "".join(x for x in title if x.isalnum() or x==" ")[:20].strip().replace(" ", "-").lower()
