@@ -1,1 +1,36 @@
+name: Auto Blog Poster
 
+on:
+  schedule:
+    - cron: '0 * * * *' # This tells GitHub to run exactly at the start of every hour
+  workflow_dispatch:     # This adds a button so you can run it manually to test
+
+jobs:
+  update-blog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # This allows the script to save the new blog post to your repo
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install Libraries
+        run: pip install requests feedparser huggingface_hub
+
+      - name: Run Auto-Blog Script
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python main.py
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "AutoBlogBot"
+          git config --global user.email "bot@noreply.github.com"
+          git add _posts/*.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Added new AI blog post" && git push)
