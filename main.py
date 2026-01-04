@@ -1,59 +1,62 @@
 import os
 import feedparser
 import datetime
+import random
 from huggingface_hub import InferenceClient
 
-# CONFIG - Cricket News Feed
-RSS_URL = "https://www.espncricinfo.com/rss/content/story/feeds/0.xml"
+# CONFIG - Specialized Indian Feeds
+FEEDS = {
+    "Cricket": "https://indianexpress.com/section/sports/cricket/feed/",
+    "Bollywood": "https://indianexpress.com/section/entertainment/bollywood/feed/"
+}
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
 def run():
-    print("--- STARTING CRICKET BLOGGER ---")
-    feed = feedparser.parse(RSS_URL)
+    print("--- STARTING INDIAN NEWS BOT ---")
     
+    # Randomly pick between Cricket and Bollywood
+    category, url = random.choice(list(FEEDS.items()))
+    print(f"Checking category: {category}")
+    
+    feed = feedparser.parse(url)
     if not feed.entries:
-        print("No cricket news found at the moment.")
+        print(f"No {category} news found.")
         return
         
     article = feed.entries[0]
     title = article.title
     summary = article.summary
-    print(f"Latest News Found: {title}")
+    print(f"Found: {title}")
 
-    # Use Llama-3.2-1B-Instruct for guaranteed compatibility
     client = InferenceClient(token=HF_TOKEN)
     
     try:
-        print("Requesting AI to write match report...")
+        print("Requesting AI generation...")
         response = client.chat_completion(
             model="meta-llama/Llama-3.2-1B-Instruct",
             messages=[
-                {"role": "system", "content": "You are a professional cricket commentator and journalist."},
-                {"role": "user", "content": f"Write a 150-word cricket news update about: {title}. Context: {summary}. Use a professional tone."}
+                {"role": "system", "content": f"You are a trendy Indian blogger specializing in {category}."},
+                {"role": "user", "content": f"Write a 150-word engaging Indian blog post about: {title}. Context: {summary}. Use a mix of formal and casual 'Desi' style."}
             ],
             max_tokens=500
         )
         
         content = response.choices[0].message.content
-        
-        # File naming logic for Jekyll
         date_str = datetime.date.today().strftime("%Y-%m-%d")
         clean_title = "".join(x for x in title if x.isalnum() or x==" ")[:25].strip().replace(" ", "-").lower()
         filename = f"_posts/{date_str}-{clean_title}.md"
 
-        # Jekyll Front Matter (Required for the website to show the post)
-        post_data = f"---\nlayout: post\ntitle: \"{title}\"\ndate: {date_str}\n---\n\n{content}"
+        # Jekyll header
+        post_data = f"---\nlayout: post\ntitle: \"{title}\"\ncategory: {category}\n---\n\n{content}"
 
-        print(f"Saving file: {filename}")
-        # Ensure the _posts folder is targeted correctly
         os.makedirs("_posts", exist_ok=True) 
         with open(filename, "w") as f:
             f.write(post_data)
         
-        print(f"--- SUCCESS: {filename} CREATED ---")
+        print(f"--- SUCCESS: {category} Post Created ---")
 
     except Exception as e:
-        print(f"--- CRITICAL ERROR: {str(e)} ---")
+        print(f"--- ERROR: {str(e)} ---")
 
 if __name__ == "__main__":
     run()
