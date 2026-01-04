@@ -46,3 +46,10 @@ def run():
 
 if __name__ == "__main__":
     run()
+- name: Commit and Push Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add _posts/*.md
+          git commit -m "New sports post" || echo "Nothing to commit"
+          git push
