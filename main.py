@@ -12,24 +12,23 @@ FEEDS = {
     "Sports History": "HISTORY_MODE"
 }
 
-# Secondary images to make the blog look rich
+# High-quality Indian Sports/Culture Images
 BACKUP_IMAGES = [
-    "https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&q=80&w=1000", # Cricket
-    "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1000", # Football
-    "https://images.unsplash.com/photo-15176039811ef-9366f07ec0f1?auto=format&fit=crop&q=80&w=1000", # Stadium
-    "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=1000"  # Movie/Cinema
+    "https://images.unsplash.com/photo-1531415074968-036ba1b575da?q=80&w=1000", # Cricket Ground
+    "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1000", # Lights/Stadium
+    "https://images.unsplash.com/photo-1599423300746-b62533397364?q=80&w=1000", # Football
+    "https://images.unsplash.com/photo-15176039811ef-9366f07ec0f1?q=80&w=1000"  # Indian Crowd
 ]
 
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
 def run():
-    print("--- STARTING MULTI-IMAGE MYSTERY BLOGGER ---")
+    print("--- STARTING INDIAN PERSPECTIVE BLOGGER ---")
     category, url = random.choice(list(FEEDS.items()))
     
-    # Fetching the news
     if url == "HISTORY_MODE":
-        raw_title = f"On this day in history: {datetime.date.today().strftime('%B %d')}"
-        summary = "An incredible moment that changed Indian sports forever."
+        raw_title = f"Legendary Flashback: {datetime.date.today().strftime('%B %d')}"
+        summary = "A moment that defined Indian pride in sports history."
         news_img = random.choice(BACKUP_IMAGES)
     else:
         feed = feedparser.parse(url)
@@ -41,21 +40,22 @@ def run():
     client = InferenceClient(token=HF_TOKEN)
     
     try:
-        # THE DRAMATIC PROMPT
+        # THE "INDIAN LENS" PROMPT
         prompt = f"""
-        ACT AS: A top Indian sports influencer. 
-        TOPIC: {raw_title}
-        CONTEXT: {summary}
+        CONTEXT: {raw_title}. SUMMARY: {summary}.
         
-        STRICT RULES:
-        1. TITLE: Must be a cliffhanger mystery (e.g., 'Is Sachin's record finally in danger?' or 'The one player nobody expected to rise...').
-        2. LANGUAGE: Extremely human, emotional, and casual ('Desi' style). Use 'Chalo', 'Listen up', 'Can you believe it?'.
-        3. WORD COUNT: 350 words minimum. Maintain the factual essence but add spicy opinions.
-        4. STRUCTURE: Break it into 3 parts. After Part 1 and Part 2, write [IMAGE_HERE].
+        TASK:
+        1. FACT-CHECK: Strictly use the news provided. Do not invent scores or dates.
+        2. PERSPECTIVE: Write from the viewpoint of a passionate Indian sports fan. 
+           - If it's a global record, compare it to Sachin Tendulkar, Virat Kohli, or Dhyan Chand.
+           - Mention how this news affects Indian fans or the Indian national team.
+        3. TITLE: Create a 'Mystery' hook (e.g., 'Is Sachin's legacy finally under threat?' or 'The record India didn't see coming...').
+        4. STYLE: Use a 'Human' Desi English tone (casual but expert). 350 words minimum.
+        5. MULTI-IMAGE: Insert [IMAGE_HERE] twice within the text for visual breaks.
         
         FORMAT:
         TITLE: [Mystery Title]
-        BODY: [350-word story with [IMAGE_HERE] markers]
+        BODY: [350-word Indian-centric story with [IMAGE_HERE] markers]
         """
 
         response = client.chat_completion(
@@ -68,23 +68,21 @@ def run():
         new_title = full_text.split("TITLE:")[1].split("BODY:")[0].strip().replace('"', '')
         body_content = full_text.split("BODY:")[1].strip()
 
-        # Insert 2nd and 3rd images into the markers
-        img2 = f"![Action]({random.choice(BACKUP_IMAGES)})"
-        img3 = f"![Details]({random.choice(BACKUP_IMAGES)})"
-        
+        # Image Injection Logic
+        img2 = f"![Moment]({random.choice(BACKUP_IMAGES)})"
+        img3 = f"![Atmosphere]({random.choice(BACKUP_IMAGES)})"
         final_body = body_content.replace("[IMAGE_HERE]", img2, 1).replace("[IMAGE_HERE]", img3, 1)
 
-        # File creation
         date_str = datetime.date.today().strftime("%Y-%m-%d")
         clean_filename = "".join(x for x in new_title if x.isalnum() or x==" ")[:25].strip().replace(" ", "-").lower()
         filename = f"_posts/{date_str}-{clean_filename}.md"
 
-        post_data = f"---\nlayout: post\ntitle: \"{new_title}\"\n---\n\n![Headline]({news_img})\n\n{final_body}"
+        post_data = f"---\nlayout: post\ntitle: \"{new_title}\"\ncategory: {category}\n---\n\n![Headline]({news_img})\n\n{final_body}"
 
         os.makedirs("_posts", exist_ok=True) 
         with open(filename, "w") as f:
             f.write(post_data)
-        print(f"--- SUCCESS: {category} Post with 3 Images Created ---")
+        print(f"--- SUCCESS: Verified Indian Perspective Post Created ---")
 
     except Exception as e:
         print(f"--- ERROR: {str(e)} ---")
