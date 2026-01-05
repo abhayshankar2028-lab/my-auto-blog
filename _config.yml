@@ -8,4 +8,8 @@ plugins:
 description: ""Insightful takes on Indian Sports, Bollywood, and Global Cinema."
 url: "https://https://abhayshankar2028-lab.github.io/my-blog"
 author: "Abhay Shankar"
+# SEO Defaults
+twitter:
+  username: Abhayshankar2028-lab
+  card: summary_large_image
 google_analytics: G-3EE5LQ6EGP
