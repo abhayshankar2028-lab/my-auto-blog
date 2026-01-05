@@ -1,3 +1,12 @@
 theme: minima
 title: "Sports and Entertainment"
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# SEO Defaults
+description: "Insights on Sports, Bollywood, and Cinema."
+url: "https://yourusername.github.io/your-repo-name"
+author: "Abhay Shankar"
+
 google_analytics: G-3EE5LQ6EGP
