@@ -1,8 +1,10 @@
 name: Auto Blog Poster
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Keeps manual button active
   schedule:
-    - cron: '0 0 * * *'
+    # Changed from '0 * * * *' to '27 * * * *'
+    # This runs at minute 27 of every hour (e.g. 1:27, 2:27)
+    - cron: '27 * * * *'
 
 jobs:
   update-blog:
@@ -13,7 +15,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetches all history to prevent the 'rejected' error
+          fetch-depth: 0 
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -33,7 +35,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add _posts/*.md
-          git commit -m "Added new cricket post" || echo "No changes"
-          # This line fixes the 'rejected' error by syncing first
+          git commit -m "Hourly Indian update" || echo "No changes found"
           git pull --rebase origin main
           git push
