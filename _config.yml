@@ -5,8 +5,8 @@ plugins:
   - jekyll-sitemap
 
 # SEO Defaults
-description: "Insights on Sports, Bollywood, and Cinema."
-url: "https://yourusername.github.io/your-repo-name"
+description: ""Insightful takes on Indian Sports, Bollywood, and Global Cinema."
+url: "https://https://abhayshankar2028-lab.github.io/my-blog"
 author: "Abhay Shankar"
 
 google_analytics: G-3EE5LQ6EGP
