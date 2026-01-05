@@ -12,33 +12,37 @@ FEEDS = {
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
 def run():
-    print("--- STARTING INDIAN NEWS BOT ---")
-    
-    # Randomly pick between Cricket and Bollywood
+    print("--- STARTING NEWS BOT WITH IMAGES ---")
     category, url = random.choice(list(FEEDS.items()))
-    print(f"Checking category: {category}")
-    
     feed = feedparser.parse(url)
+    
     if not feed.entries:
-        print(f"No {category} news found.")
         return
         
     article = feed.entries[0]
     title = article.title
     summary = article.summary
-    print(f"Found: {title}")
-
+    
+    # --- IMAGE EXTRACTION LOGIC ---
+    image_url = ""
+    # Look for image in media_content or links
+    if 'media_content' in article:
+        image_url = article.media_content[0]['url']
+    elif 'links' in article:
+        for link in article.links:
+            if 'image' in link.get('type', ''):
+                image_url = link.get('href', '')
+    
     client = InferenceClient(token=HF_TOKEN)
     
     try:
-        print("Requesting AI generation...")
         response = client.chat_completion(
             model="meta-llama/Llama-3.2-1B-Instruct",
             messages=[
-                {"role": "system", "content": f"You are a trendy Indian blogger specializing in {category}."},
-                {"role": "user", "content": f"Write a 150-word engaging Indian blog post about: {title}. Context: {summary}. Use a mix of formal and casual 'Desi' style."}
+                {"role": "system", "content": f"You are a professional {category} blogger."},
+                {"role": "user", "content": f"Write a 150-word post about: {title}. Summary: {summary}"}
             ],
-            max_tokens=500
+            max_tokens=400
         )
         
         content = response.choices[0].message.content
@@ -46,14 +50,15 @@ def run():
         clean_title = "".join(x for x in title if x.isalnum() or x==" ")[:25].strip().replace(" ", "-").lower()
         filename = f"_posts/{date_str}-{clean_title}.md"
 
-        # Jekyll header
-        post_data = f"---\nlayout: post\ntitle: \"{title}\"\ncategory: {category}\n---\n\n{content}"
+        # Add image to the post using Markdown syntax
+        image_markdown = f"![{title}]({image_url})\n\n" if image_url else ""
+        
+        post_data = f"---\nlayout: post\ntitle: \"{title}\"\n---\n\n{image_markdown}{content}"
 
         os.makedirs("_posts", exist_ok=True) 
         with open(filename, "w") as f:
             f.write(post_data)
-        
-        print(f"--- SUCCESS: {category} Post Created ---")
+        print(f"--- SUCCESS: {category} Post Created with Image ---")
 
     except Exception as e:
         print(f"--- ERROR: {str(e)} ---")
